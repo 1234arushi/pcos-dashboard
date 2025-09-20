@@ -1,0 +1,2 @@
+# Ignore Jupyter backup files
+.ipynb_checkpoints/
