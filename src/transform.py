@@ -6,17 +6,18 @@ RAW = Path(__file__).resolve().parents[1]/"data"/"PCOS_data.csv"
 CLEANED = Path(__file__).resolve().parents[1]/"outputs"/"pcos_cleaned.csv"
 
 def transform():
-    df=pd.read_csv(RAW)
+   
+    df = pd.read_csv(RAW)
     print("Loaded raw data: ",RAW,"with shape: ",df.shape)
 
-    df.columns=df.columns.str.strip()
+    df.columns = df.columns.str.strip()
 
-
-    #1. handling null values for text datatypes cols
+    #handling null values for text datatypes cols
     for col in df.select_dtypes(include="object").columns:
         mode_val=df[col].mode()[0]
         df[col]=df[col].fillna(mode_val)
-    #2. handling null values for numeric datatype cols
+
+    #handling null values for numeric datatype cols
     for col in df.select_dtypes(include=[np.number]).columns:
         median_val=df[col].median()
         df[col]=df[col].fillna(median_val)
@@ -29,11 +30,10 @@ def transform():
     "RR (breaths/min)", "Hb(g/dl)", "No. of abortions", "Unnamed: 44",
     "I   beta-HCG(mIU/mL)", "II    beta-HCG(mIU/mL)", "FSH(mIU/mL)","LH(mIU/mL)","FSH/LH"], errors="ignore")
    
-    df["Cycle(R/I)"]=df["Cycle(R/I)"].replace({2:0,4:1,5:1})
+    #feature engineering
+    df["Cycle(R/I)"]=df["Cycle(R/I)"].replace({2:0,4:1,5:1})#check in notebook folder why this mapping was done
    
-
     df =df.rename(columns={
-   
     "PCOS (Y/N)": "PCOS",
     "Age (yrs)": "Age",
     "Weight (Kg)": "Weight",
@@ -54,20 +54,19 @@ def transform():
     "Fast food (Y/N)": "Fast_Food",
     "Reg.Exercise(Y/N)": "Exercise"
 
-
    })
+   #feature engineering
     df["bmi_category"]=pd.cut(df["BMI"],bins=[0,18.5,24.9,29.9,100],labels=["underweight","normal","overweight","obese"])
 
     #save the clean dataset
-    #parents = True->create any missing parent folders too
-    #exists = True->don't throw an error if the folder already exists
-    CLEANED.parent.mkdir(parents=True,exist_ok=True)
+    CLEANED.parent.mkdir(parents=True,exist_ok=True)#creates missing parent folder,& doesn't throw error if folder exists
     df.to_csv(CLEANED,index=False)#index=false->so that df index is not added as a separate col in csv
     print("\n Columns after cleaning: ",list(df.columns))
     print("\n First 5 rows: \n",df.head())
   
     
-    return df#useful if you use transform() in another script
+    return df
+    #useful if you use transform() in another script
 
 #calling as a standalone function
 if __name__=="__main__":

@@ -1,4 +1,4 @@
 streamlit
 pandas
-sqlalchemy -> python library for talking to databases
-psycopg2-binary -> the actual postgres driver
+sqlalchemy:python library for talking to databases
+psycopg2-binary : the actual postgres driver
