@@ -17,3 +17,12 @@ This project analyzes a PCOS dataset and builds an interactive dashboard using S
 - **Lifestyle factors**  
   - Eating fast food increases PCOS risk.  
   - Regular exercise reduces PCOS prevalence.  
+
+- **Model Results**  
+  - accuracy : 86%
+  - precision : when the model says PCOS = 1,it is correct 82% of 
+    the time
+  - recall : of actuall pcos patients,the model finds 75%(imp as we do not want to miss the women having pcos)
+
+- **After adding custom threshold & (using class_weight = "balanced")**  
+  - recall : 83 %
