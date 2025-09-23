@@ -29,10 +29,11 @@ def transform():
     "Endometrium (mm)", "Sl. No", "Patient File No.", "Pulse rate(bpm)", 
     "RR (breaths/min)", "Hb(g/dl)", "No. of abortions", "Unnamed: 44",
     "I   beta-HCG(mIU/mL)", "II    beta-HCG(mIU/mL)", "FSH(mIU/mL)","LH(mIU/mL)","FSH/LH"], errors="ignore")
-   
+
     #feature engineering
+    # 1-> irregular , 0 ->regular
     df["Cycle(R/I)"]=df["Cycle(R/I)"].replace({2:0,4:1,5:1})#check in notebook folder why this mapping was done
-   
+
     df =df.rename(columns={
     "PCOS (Y/N)": "PCOS",
     "Age (yrs)": "Age",
@@ -55,8 +56,13 @@ def transform():
     "Reg.Exercise(Y/N)": "Exercise"
 
    })
-   #feature engineering
+    #feature engineering
+    corr=df.corr()["PCOS"].sort_values(ascending=False)#helps in finding which features are closely realted to pcos
+    print(corr)
+   
     df["bmi_category"]=pd.cut(df["BMI"],bins=[0,18.5,24.9,29.9,100],labels=["underweight","normal","overweight","obese"])
+
+    #change name of cycle_length
 
     #save the clean dataset
     CLEANED.parent.mkdir(parents=True,exist_ok=True)#creates missing parent folder,& doesn't throw error if folder exists

@@ -1,16 +1,20 @@
 import pandas as pd
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine,text
 from pathlib import Path
 
 CLEANED=Path(__file__).resolve().parents[1]/"outputs"/"pcos_cleaned.csv"
 
-#DB connection details
-DB_USER = "postgres"
-DB_PASS = "1234"
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "pcos_db"
+#DB connection details-> in env
 
+load_dotenv()
+#reading db details
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASS")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
 #build connection string for sqlAlchemy
 CONN_STR= f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
@@ -36,6 +40,7 @@ def load_to_postgres():
 
     print(f"Loaded {len(df)} rows into 'patients' table in db")
 
+#to run file independently
 if __name__=="__main__":
     load_to_postgres()
     

@@ -2,3 +2,7 @@ streamlit
 pandas
 sqlalchemy:python library for talking to databases
 psycopg2-binary : the actual postgres driver
+
+python3 -m streamlit run ui.py - frontend
+
+python3 -m uvicorn app:app --reload - backend

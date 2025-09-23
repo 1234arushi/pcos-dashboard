@@ -13,28 +13,37 @@ def train_model():
     df=pd.read_csv(CLEANED)
 
     #features , X->inputs and Y->answers(target labels)
-    X = df.drop(columns=["PCOS","bmi_category"])#dropping the target and leaving X->with other columns(inputs)
+    # X = df.drop(columns=["PCOS","bmi_category"])#dropping the target and leaving X->with other columns(inputs)
+    selected_features=[
+        "Skin_Darkening",
+        "Hair_Growth",
+        "Weight_Gain",
+        "Cycle_Type",
+        "Fast_Food",
+        "Pimples",
+        "Weight",
+        "BMI",
+        "Hair_Loss",
+        "Waist",
+        "Age", 
+        "Cycle_Length", 
+        "Marriage_Years"#negative relation
+    ]
+    X = df[selected_features]
     Y = df["PCOS"]
 
     #train/test split
-    
-    #training set(to teach model) and test set(to check how well it trained)
-    #test_size ->20% of data ,rest 80% of data for training
-    #random_state=42(is to make sure results remain same each run meaning it is fixing the shuffling)
-    #for instance,that same 2 rows always go into test every run
-    # why 42? Hitchhiker said 42 is answer to everything
-    #stratify = Y (ensures that ratio of classes in Y is preserved in both train & test set)-> % non pcos & % pcos
     X_train,X_test,Y_train,Y_test = train_test_split(X,Y,test_size = 0.2,random_state = 42,stratify = Y)
 
     model = LogisticRegression(max_iter=1000,class_weight="balanced")#"balanced" as we have 177->pcos(y) vs 364->pcos(n),now it will look closely to minority class
-    #model=RandomForestClassifier(class_weight="balanced")->56 % recall
+   
     model.fit(X_train,Y_train)
 
     #default -> p >= 0.5,predict =1 otherwise predict 0(p->probabiltiy of a patient by adding weights to the inputs)
     # Y_pred = model.predict(X_test)
 
     #using custom threshold,to increase recall
-    Y_prob = model.predict_proba(X_test)[:,1]#predict_proba returns [P(0),P(1)]->select rows where pcos=1
+    Y_prob = model.predict_proba(X_test)[:,1]#predict_proba returns [P(0),P(1)]->select rows where pcos=1 because of [:,1]
     threshold = 0.4
     Y_pred = (Y_prob >= threshold).astype(int)
 
@@ -63,3 +72,11 @@ def train_model():
 
 if __name__=="__main__":
     trained_model = train_model()
+
+#training set(to teach model) and test set(to check how well it trained)
+#test_size ->20% of data ,rest 80% of data for training
+#random_state=42(is to make sure results remain same each run meaning it is fixing the shuffling)
+#for instance,that same 2 rows always go into test every run
+# why 42? Hitchhiker said 42 is answer to everything
+#stratify = Y (ensures that ratio of classes in Y is preserved in both train & test set)-> % non pcos & % pcos
+#model=RandomForestClassifier(class_weight="balanced")->56 % recall
