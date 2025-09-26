@@ -30,8 +30,9 @@ metadata = MetaData()
 patients_predictions = Table(
     "patients_predictions",metadata,
     Column("id",Integer,primary_key = True,autoincrement = True),
+    Column("patient_id",String,unique=True)
     Column("age", Integer),
-    Column("cycle_length", Integer),
+    Column("menstrual_days", Integer),
     Column("weight", Float),
     Column("waist", Float),
     Column("bmi", Float),
@@ -50,7 +51,7 @@ metadata.create_all(engine)#creates if not exists
 # Schema for doctor input
 class PatientInput(BaseModel):#used when we get request from doctor in json
     age : int
-    cycle_length : int
+    menstrual_days : int
     weight : float
     waist : float
     bmi : float
@@ -70,7 +71,7 @@ def predict(input : PatientInput):
     selected_features = [
         "Skin_Darkening","Hair_Growth","Weight_Gain","Cycle_Type",
         "Fast_Food","Pimples","Weight","BMI","Hair_Loss","Waist",
-        "Age","Cycle_Length","Marriage_Years"
+        "Age","Menstrual_Days","Marriage_Years"
     ]
 
     #features have to be 2-d array with same order as training
@@ -87,7 +88,7 @@ def predict(input : PatientInput):
         input.hair_loss,
         input.waist,
         input.age,
-        input.cycle_length,
+        input.menstrual_days,
         input.marriage_yrs
     ]], columns=selected_features)
 
@@ -111,7 +112,7 @@ def predict(input : PatientInput):
                 hair_loss=input.hair_loss,
                 waist=input.waist,
                 age=input.age,
-                cycle_length=input.cycle_length,
+                menstrual_days=input.menstrual_days,
                 marriage_yrs=input.marriage_yrs,
                 prediction=pred
             )

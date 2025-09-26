@@ -42,7 +42,7 @@ def transform():
     "BMI": "BMI",
     "Blood Group": "Blood_Group",
     "Cycle(R/I)": "Cycle_Type",
-    "Cycle length(days)": "Cycle_Length",
+    "Cycle length(days)": "Menstrual_Days",
     "Marraige Status (Yrs)": "Marriage_Years",
     "Pregnant(Y/N)": "Pregnant",
     "Waist(inch)": "Waist",

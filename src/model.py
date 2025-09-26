@@ -26,7 +26,7 @@ def train_model():
         "Hair_Loss",
         "Waist",
         "Age", 
-        "Cycle_Length", 
+        "Menstrual_Days", 
         "Marriage_Years"#negative relation
     ]
     X = df[selected_features]
