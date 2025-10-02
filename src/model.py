@@ -1,11 +1,11 @@
 import pandas as pd
 import joblib
 from pathlib import Path
-# python3 -m pip install scikit-learn
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score,confusion_matrix,classification_report
+from sklearn.metrics import roc_curve,accuracy_score,precision_score,recall_score,f1_score,confusion_matrix,classification_report
 
 CLEANED=Path(__file__).resolve().parents[1]/"outputs"/"pcos_cleaned.csv"
 
@@ -39,13 +39,25 @@ def train_model():
    
     model.fit(X_train,Y_train)
 
-    #default -> p >= 0.5,predict =1 otherwise predict 0(p->probabiltiy of a patient by adding weights to the inputs)
+    #default threshold(0.5)
+    #-> p >= 0.5,predict =1 otherwise predict 0(p->probabiltiy of a patient by adding weights to the inputs)
     # Y_pred = model.predict(X_test)
 
     #using custom threshold,to increase recall
     Y_prob = model.predict_proba(X_test)[:,1]#predict_proba returns [P(0),P(1)]->select rows where pcos=1 because of [:,1]
-    threshold = 0.4
-    Y_pred = (Y_prob >= threshold).astype(int)
+    # threshold = 0.4
+    # Y_pred = (Y_prob >= threshold).astype(int)
+
+    #lets predict with best threshold using roc curve
+    fpr,tpr,thresholds=roc_curve(Y_test,Y_prob)
+    youden_j = tpr - fpr#higher value->we are catching high recall
+    #youden_j ->array of J values for each threshold
+    best_idx=np.argmax(youden_j)#returns index for max value in youden_j
+    best_threshold = thresholds[best_idx]
+    print(f"\nBest threshold chosen by Youden’s J: {best_threshold:.2f}")
+
+    Y_pred = (Y_prob >= best_threshold).astype(int)
+
 
     acc = accuracy_score(Y_test,Y_pred)#finding right guesses
     prec = precision_score(Y_test,Y_pred)#no of cases that actually had pcos from which the model predicted had pcos=(TP/TP+FP)
@@ -79,4 +91,3 @@ if __name__=="__main__":
 #for instance,that same 2 rows always go into test every run
 # why 42? Hitchhiker said 42 is answer to everything
 #stratify = Y (ensures that ratio of classes in Y is preserved in both train & test set)-> % non pcos & % pcos
-#model=RandomForestClassifier(class_weight="balanced")->56 % recall
