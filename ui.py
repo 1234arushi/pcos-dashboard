@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import requests
 
 st.set_page_config(page_title="PCOS PATIENT DASHBOARD",page_icon="🩺",layout="centered")#tab_name kinda
@@ -28,14 +29,17 @@ page_bg="""
 st.markdown(page_bg,unsafe_allow_html=True)#allows to use css/html 
 
 st.sidebar.title("")
-menu=st.sidebar.radio("",["Predict PCOS","Patient History","About"])
+menu=st.sidebar.radio("",["Predict PCOS","Patient History","About"],index=2)#this ensures that about page  comes first
 if menu == "Predict PCOS":
 
     st.title("💖 Enter the details for patient")
+    name=st.text_input("Patient Name")
 
     col1,col2=st.columns(2)#dividing page into 2 columns
+  
 
     with col1:
+       
         age = st.number_input("Age (years)",min_value=10,max_value=60,step=1)
         cycle_length = st.number_input("Menstrual Days",min_value=0,max_value=20,step=1)
         weight = st.number_input("Weight (kg)")
@@ -87,7 +91,8 @@ if menu == "Predict PCOS":
             "fast_food": fast_food,
             "pimples": pimples,
             "hair_loss": hair_loss,
-            "marriage_yrs": marriage_yrs
+            "marriage_yrs": marriage_yrs,
+            "name"  :name
 
         }
         response = requests.post("http://127.0.0.1:8000/predict",json=data)
@@ -95,13 +100,13 @@ if menu == "Predict PCOS":
         if response.status_code == 200:
             result = response.json()
             if result["prediction"]==1:
-                st.error(f"{result['message']}PCOS Probability:{result['probability_pcos']*100:.1f}%")
+                st.error(f"{result['message']} Probability:{result['probability_pcos']*100:.1f}%")
             else:
-                st.success(f"{result['message']}PCOS Probability:{result['probability_pcos']*100:.1f}%")
+                st.success(f"{result['message']} Probability:{result['probability_pcos']*100:.1f}%")
         else:
             st.error("API Error : Could not connect to backend")
 elif menu == "About":
-    st.title( "### 🩺 About PCOS Dashboard ")
+    st.title( "🩺 About PCOS Dashboard ")
     st.markdown("""
   
    To help doctors:
@@ -109,6 +114,36 @@ elif menu == "About":
      - calculate bmi automatically \n
      
      """)
+elif menu == "Patient History":
+    st.title("📋 Patient History")
+    response = requests.get("http://127.0.0.1:8000/patients")
+    if response.status_code == 200:
+        result = response.json()
+        # #result is dict ={
+        # "patients":[
+        #     {"name":"Riya","age"},
+            #  {}
+        # ]
+
+        # }
+        patients=result.get("patients",[])
+        if patients:
+            df = pd.DataFrame(patients)
+            df=df[["name","age","bmi","menstrual_days","prediction"]]
+            df.rename(columns={
+                "name":"Name",
+                "age":"Age",
+                "bmi":"BMI",
+                "menstrual_days":"Menstrual Days",
+                "prediction":"PCOS Prediction (1->Yes,0->No)"
+            },inplace=True)#inplace -> modifies df directly
+
+            df.reset_index(drop=True,inplace=True)#removes index col
+            st.dataframe(df)
+        else:
+            st.info("No patient history found") 
+    else:
+        st.error("API Error : Could not connect to backend")
 
 
 

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import joblib
 import os
 from pathlib import Path
-from sqlalchemy import create_engine,Table,Column,Integer,Float,MetaData,select
+from sqlalchemy import create_engine,Table,Column,Integer,Float,String,MetaData,select
 import pandas as pd  # ✅ added to build DataFrame with correct column order
 
 MODEL_PATH = Path(__file__).resolve().parents[0]/"models"/"pcos_model.pkl"
@@ -30,7 +30,8 @@ metadata = MetaData()
 patients_predictions = Table(
     "patients_predictions",metadata,
     Column("id",Integer,primary_key = True,autoincrement = True),
-    Column("patient_id",String,unique=True)
+    Column("patient_id", String ,unique=True),
+    Column("name", String),
     Column("age", Integer),
     Column("menstrual_days", Integer),
     Column("weight", Float),
@@ -63,6 +64,7 @@ class PatientInput(BaseModel):#used when we get request from doctor in json
     pimples : int
     hair_loss : int
     marriage_yrs : float
+    name : str
 
 @app.post("/predict")#when request made to this handle,then call below function
 def predict(input : PatientInput):
@@ -92,35 +94,70 @@ def predict(input : PatientInput):
         input.marriage_yrs
     ]], columns=selected_features)
 
-    #default -> predict_proba returns [P(0),P(1)]->select prob for PCOS=1
-    proba = float(model.predict_proba(features_df)[:,1][0])#predict_proba -> % values
+    #default -> predict_proba returns [[P(0),P(1)]]->select prob for PCOS=1
+    proba = float(model.predict_proba(features_df)[:,1][0])
     threshold = 0.4
     pred = 1 if proba >= threshold else 0
 
-    # save patient + prediction in DB
-    with engine.begin() as conn:#engine.begin()->for write operations
-        conn.execute(
-            patients_predictions.insert().values(
-                skin_darkening=input.skin_darkening,
-                hair_growth=input.hair_growth,
-                weight_gain=input.weight_gain,
-                cycle_type=input.cycle_type,
-                fast_food=input.fast_food,
-                pimples=input.pimples,
-                weight=input.weight,
-                bmi=input.bmi,
-                hair_loss=input.hair_loss,
-                waist=input.waist,
-                age=input.age,
-                menstrual_days=input.menstrual_days,
-                marriage_yrs=input.marriage_yrs,
-                prediction=pred
+    patient_id = f"{input.age}_{input.name.lower()}"
+
+    with engine.begin() as conn:
+        # . c -> to access columns by name
+        existing = conn.execute(
+            select(patients_predictions)
+            .where(patients_predictions.c.patient_id == patient_id)
+        ).first()
+
+        if existing:
+            
+            conn.execute(
+                patients_predictions.update()
+                .where(patients_predictions.c.patient_id == patient_id)
+                .values(
+                    age=input.age,
+                    name=input.name,
+                    menstrual_days=input.menstrual_days,
+                    weight=input.weight,
+                    waist=input.waist,
+                    bmi=input.bmi,
+                    skin_darkening=input.skin_darkening,
+                    hair_growth=input.hair_growth,
+                    weight_gain=input.weight_gain,
+                    cycle_type=input.cycle_type,
+                    fast_food=input.fast_food,
+                    pimples=input.pimples,
+                    hair_loss=input.hair_loss,
+                    marriage_yrs=input.marriage_yrs,
+                    prediction=pred
+                )
             )
-        )
+        else:
+         
+            conn.execute(
+                patients_predictions.insert().values(
+                    patient_id=patient_id,
+                    name=input.name,
+                    skin_darkening=input.skin_darkening,
+                    hair_growth=input.hair_growth,
+                    weight_gain=input.weight_gain,
+                    cycle_type=input.cycle_type,
+                    fast_food=input.fast_food,
+                    pimples=input.pimples,
+                    weight=input.weight,
+                    bmi=input.bmi,
+                    hair_loss=input.hair_loss,
+                    waist=input.waist,
+                    age=input.age,
+                    menstrual_days=input.menstrual_days,
+                    marriage_yrs=input.marriage_yrs,
+                    prediction=pred
+                )
+            )
+
     return {
         "prediction": pred,
-        "probability_pcos":round(proba,2),
-        "message":"Yes,with" if pred==1 else "No,"
+        "probability_pcos": round(proba, 2),
+        "message": "You have PCOS with " if pred == 1 else "No, you don't have PCOS with "
     }
 
 @app.get("/patients")
