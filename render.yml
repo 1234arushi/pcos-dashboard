@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: frontend
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.ui
+    envVars:
+      - key: API_URL
+        value: http://backend:8000
+    autoDeploy: true
+
+  - type: web
+    name: backend
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.api
+    autoDeploy: true
+    envVars:
+      - key: DB_USER
+        value: postgres
+      - key: DB_PASS
+        value: 1234
+      - key: DB_HOST
+        value: db
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: pcos_db
+
+  - type: pserv
+    name: db
+    env: docker
+    plan: free
+    dockerCommand: |
+      docker run --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=1234 -e POSTGRES_DB=pcos_db -p 5432:5432 postgres:14
+    autoDeploy: false
