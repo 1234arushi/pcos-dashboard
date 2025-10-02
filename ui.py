@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import requests
 
-API_URL = "http://backend:8000"   # 'backend' is the service name in docker-compose
 
 st.set_page_config(page_title="PCOS PATIENT DASHBOARD",page_icon="🩺",layout="centered")#tab_name kinda
 
@@ -97,7 +96,7 @@ if menu == "Predict PCOS":
             "name"  :name
 
         }
-        response = requests.post(f"{API_URL}/predict", json=data)
+        response = requests.post("http://127.0.0.1:8000/predict",json=data)
 
         if response.status_code == 200:
             result = response.json()
@@ -118,7 +117,7 @@ elif menu == "About":
      """)
 elif menu == "Patient History":
     st.title("📋 Patient History")
-    response = requests.get(f"{API_URL}/patients")
+    response = requests.get("http://127.0.0.1:8000/patients")
 
     if response.status_code == 200:
         result = response.json()

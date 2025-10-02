@@ -8,3 +8,7 @@ python-dotenv
 SQLAlchemy
 psycopg2-binary
 joblib
+
+python3 -m streamlit run ui.py - frontend
+
+python3 -m uvicorn app:app --reload - backend
