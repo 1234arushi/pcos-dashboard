@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  # ---------------- Database ----------------
+  db:
+    image: postgres:15
+    container_name: pcos_db
+    environment:
+      POSTGRES_USER: postgres           # same as in .env
+      POSTGRES_PASSWORD: 1234           # same as in .env
+      POSTGRES_DB: pcos_db              # same as in .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # ---------------- Backend (FastAPI) ----------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: pcos_backend
+    depends_on:
+      - db
+    environment:
+      DB_USER: postgres
+      DB_PASS: 1234
+      DB_HOST: db                       # refers to 'db' service above
+      DB_PORT: 5432
+      DB_NAME: pcos_db
+    ports:
+      - "8000:8000"
+
+  # ---------------- Frontend (Streamlit) ----------------
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: pcos_frontend
+    depends_on:
+      - backend
+    ports:
+      - "8501:8501"
+
+volumes:
+  pgdata:

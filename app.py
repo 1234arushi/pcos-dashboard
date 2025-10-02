@@ -26,6 +26,7 @@ CONN_STR = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_N
 engine = create_engine(CONN_STR)
 metadata = MetaData()
 
+
 # Table for storing patient predictions
 patients_predictions = Table(
     "patients_predictions",metadata,
