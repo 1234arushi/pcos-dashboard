@@ -8,7 +8,9 @@ from sqlalchemy import create_engine,Table,Column,Integer,Float,String,MetaData,
 import pandas as pd  # ✅ added to build DataFrame with correct column order
 
 MODEL_PATH = Path(__file__).resolve().parents[0]/"models"/"pcos_model.pkl"
-model = joblib.load(MODEL_PATH)
+bundle = joblib.load(MODEL_PATH)
+model = bundle["model"]
+threshold = bundle["threshold"]
 
 app = FastAPI(title = "PCOS Prediction API")
 
@@ -97,7 +99,6 @@ def predict(input : PatientInput):
 
     #default -> predict_proba returns [[P(0),P(1)]]->select prob for PCOS=1
     proba = float(model.predict_proba(features_df)[:,1][0])
-    threshold = 0.4
     pred = 1 if proba >= threshold else 0
 
     patient_id = f"{input.age}_{input.name.lower()}"

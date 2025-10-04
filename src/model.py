@@ -77,10 +77,15 @@ def train_model():
     MODELS_DIR = Path(__file__).resolve().parents[1]/"models"
     MODELS_DIR.mkdir(parents=True,exist_ok=True)
 
-    joblib.dump(model,MODELS_DIR/"pcos_model.pkl")
+    model_bundle = {
+        "model": model,
+        "threshold": best_threshold
+    }
+
+    joblib.dump(model_bundle,MODELS_DIR/"pcos_model.pkl")
     print("Model saved at : ",MODELS_DIR/"pcos_model.pkl")#containing trained model's knowledge(the learned weights,coefficients,parameters)
 
-    return model
+    return model_bundle
 
 if __name__=="__main__":
     trained_model = train_model()
